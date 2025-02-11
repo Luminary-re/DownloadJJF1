@@ -1,3 +1,4 @@
+import sys
 import tkinter as tk
 from tkinter import messagebox, filedialog, colorchooser
 
@@ -41,7 +42,7 @@ def open_file():
 
 def show_about():
     """显示关于对话框"""
-    messagebox.showinfo("关于", "版本 1.0")
+    messagebox.showinfo("关于", "版本 1.0.0")
 
 
 def show_disclaimer():
@@ -97,14 +98,14 @@ def init_config():
         "background_color": "#f0f0f0"  # 默认背景颜色（白色）
     }
     if not os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, "w") as f:
-            json.dump(default_config, f)
+        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+            json.dump(default_config, f, indent=4)
 
 
 def load_config():
     """加载 JSON 配置"""
     try:
-        with open(CONFIG_FILE, "r") as f:
+        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         return {"default_directory": "", "background_color": "#f0f0f0"}
@@ -112,8 +113,8 @@ def load_config():
 
 def save_config(config1):
     """保存 JSON 配置"""
-    with open(CONFIG_FILE, "w") as f:
-        json.dump(config1, f)
+    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(config1, f, indent=4)
 
 
 def apply_background_color(color):
@@ -123,8 +124,8 @@ def apply_background_color(color):
 
 def save_default_directory(directory):
     """保存默认目录到 JSON"""
-    with open(CONFIG_FILE, "w") as f:
-        json.dump({"default_directory": directory}, f)
+    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump({"default_directory": directory}, f, indent=4)
 
 
 def open_settings():
@@ -217,6 +218,10 @@ def open_settings():
             save_config(config)
             show_theme_settings()
 
+        # **添加文本框上方的描述标签**
+        dir_label1 = tk.Label(right_frame, text="主题随以下颜色值改变而改变：", font=("microsoft yahei", 12), bg="white")
+        dir_label1.pack(pady=(10, 0))  # 只在上方留一点空隙
+
         color_entry = tk.Entry(right_frame, textvariable=color_var, width=20, state="readonly")
         color_entry.pack(pady=10)
 
@@ -246,8 +251,8 @@ def open_settings():
         dir_var.set(saved_dir if saved_dir else default_downloads)
 
         # **添加文本框上方的描述标签**
-        dir_label = tk.Label(right_frame, text="当前文件默认导出到以下目录：", font=("microsoft yahei", 12), bg="white")
-        dir_label.pack(pady=(10, 0))  # 只在上方留一点空隙
+        dir_label2 = tk.Label(right_frame, text="当前文件默认导出到以下目录：", font=("microsoft yahei", 12), bg="white")
+        dir_label2.pack(pady=(10, 0))  # 只在上方留一点空隙
 
         dir_entry = tk.Entry(right_frame, textvariable=dir_var, width=30, state="readonly")
         dir_entry.pack(pady=10)
@@ -330,7 +335,7 @@ def open_settings():
 
 if __name__ == '__main__':
     # JSON 配置文件路径
-    CONFIG_FILE = get_resource_path("assets/config.json")
+    CONFIG_FILE = get_resource_path("config.json")
 
     # 创建主窗口
     root = tk.Tk()
@@ -342,7 +347,11 @@ if __name__ == '__main__':
     apply_background_color(config["background_color"])
 
     # 加载 PNG 或 JPG 图片
-    icon_image = Image.open(get_resource_path("assets/logo.png"))  # 读取 PNG/JPG
+    """获取正确的资源文件路径（兼容 PyInstaller 和 Python 运行模式）"""
+    imagePath = os.path.join(os.path.dirname(__file__), "..", "assets/logo.png")
+    if hasattr(sys, "_MEIPASS"):
+        imagePath = os.path.join(sys._MEIPASS, "assets/logo.png")
+    icon_image = Image.open(imagePath)  # 读取 PNG/JPG
     icon_photo = ImageTk.PhotoImage(icon_image)  # 转换为 Tkinter 可用格式
 
     # 设置窗口图标

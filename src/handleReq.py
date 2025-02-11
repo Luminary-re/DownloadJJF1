@@ -64,21 +64,19 @@ def get_pdf_response(session, token, Myfoxit, std_type, std_no):
 
 
 def get_resource_path(relative_path):
-    """获取正确的资源文件路径（兼容 PyInstaller 和 Python 运行模式）"""
-    # if hasattr(sys, "_MEIPASS"):  # PyInstaller 运行时的临时目录
-    #     return os.path.join(sys._MEIPASS, relative_path)
-    if getattr(sys, 'frozen', False):  # 运行于 PyInstaller 打包的 exe
-        return os.path.join(os.path.dirname(sys.executable), relative_path)
+    if sys.platform == "win32":
+        config_dir = os.path.join(os.getenv("APPDATA"), "DownloadJJF1")  # Windows
+    else:
+        config_dir = os.path.join(os.path.expanduser("~"),  ".downloadJJF1")  # Linux/Mac
 
-    # 开发模式
-    base_path = os.path.abspath(os.path.dirname(__file__))  # 获取 main.py 所在目录
-    return os.path.join(base_path, "..", relative_path)  # 返回正确的路径
+    os.makedirs(config_dir, exist_ok=True)  # 如果目录不存在，创建目录
+    return os.path.join(config_dir, relative_path)
 
 
 def load_default_directory():
     """加载默认目录配置"""
     try:
-        with open(get_resource_path("assets/config.json"), "r") as f:
+        with open(get_resource_path("config.json"), "r") as f:
             config = json.load(f)
             return config.get("default_directory", "")
     except (FileNotFoundError, json.JSONDecodeError):
